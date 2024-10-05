@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   String generateRandomString(int length) {
@@ -21,15 +21,6 @@ class AuthService {
     const baseUrl = 'https://api.intra.42.fr/oauth/authorize';
 
     return '$baseUrl?client_id=$clientId&redirect_uri=$redirectUri&response_type=$responseType&scope=$scope&state=$state';
-  }
-
-  Future<void> openAuthorizationUrl() async {
-    final url = getAuthorizationUrl();
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 
   Future<String?> exchangeCodeForToken(String code) async {

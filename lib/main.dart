@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'auth_service.dart';
+import 'webview_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +39,21 @@ class _MyHomePageState extends State<MyHomePage> {
   String _accessToken = '';
 
   void _login() async {
-    await _authService.openAuthorizationUrl();
+    final authorizationUrl = _authService.getAuthorizationUrl();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WebViewPage(
+          initialUrl: authorizationUrl,
+          onCodeReceived: (code) async {
+            final accessToken = await _authService.exchangeCodeForToken(code);
+            setState(() {
+              _accessToken = accessToken ?? '';
+            });
+          },
+        ),
+      ),
+    );
   }
 
   @override
