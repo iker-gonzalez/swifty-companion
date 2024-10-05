@@ -38,13 +38,56 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-        return responseBody['access_token'];
+        final accessToken = responseBody['access_token'];
+        await _saveAccessToken(accessToken);
+        return accessToken;
       } else {
         print('Failed to get access token: ${response.body}');
         return null;
       }
     } catch (e) {
       print('Error during token exchange: $e');
+      return null;
+    }
+  }
+
+  Future<void> _saveAccessToken(String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('access_token', token);
+    } catch (e) {
+      print('Error saving access token: $e');
+    }
+  }
+
+  Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('access_token');
+  }
+
+  Future<Map<String, dynamic>?> getUserInfo() async {
+    final accessToken = await getAccessToken();
+    if (accessToken == null) {
+      print('No access token found');
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.intra.42.fr/v2/me'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        print('Failed to get user info: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error during user info request: $e');
       return null;
     }
   }

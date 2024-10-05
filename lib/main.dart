@@ -36,7 +36,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final AuthService _authService = AuthService();
-  String _accessToken = '';
 
   void _login() async {
     final authorizationUrl = _authService.getAuthorizationUrl();
@@ -47,13 +46,17 @@ class _MyHomePageState extends State<MyHomePage> {
           initialUrl: authorizationUrl,
           onCodeReceived: (code) async {
             final accessToken = await _authService.exchangeCodeForToken(code);
-            setState(() {
-              _accessToken = accessToken ?? '';
-            });
           },
         ),
       ),
     );
+  }
+
+  void _getUserInfo() async {
+    final userInfo = await _authService.getUserInfo();
+    if (userInfo != null) {
+      print('User Info: $userInfo');
+    }
   }
 
   @override
@@ -71,8 +74,10 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: _login,
               child: const Text('Login with OAuth2'),
             ),
-            if (_accessToken.isNotEmpty)
-              Text('Access Token: $_accessToken'),
+            ElevatedButton(
+              onPressed: _getUserInfo,
+              child: const Text('Get User Info'),
+            ),
           ],
         ),
       ),
