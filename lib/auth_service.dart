@@ -1,4 +1,3 @@
-// lib/auth_service.dart
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_appauth/flutter_appauth.dart';
@@ -36,30 +35,41 @@ class AuthService {
         ),
       );
 
-      return result?.accessToken;
+      if (result != null) {
+        print('Access Token: ${result.accessToken}');
+        return result.accessToken;
+      } else {
+        print('Authorization failed or was canceled.');
+        return null;
+      }
     } catch (e) {
-      print('Error: $e');
+      print('Error during login: $e');
       return null;
     }
   }
 
   Future<String?> exchangeCodeForToken(String code) async {
-    final response = await http.post(
-      Uri.parse('https://api.intra.42.fr/oauth/token'),
-      body: {
-        'grant_type': 'authorization_code',
-        'client_id': dotenv.env['CLIENT_ID']!,
-        'client_secret': dotenv.env['CLIENT_SECRET']!,
-        'code': code,
-        'redirect_uri': dotenv.env['REDIRECT_URI']!,
-      },
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.intra.42.fr/oauth/token'),
+        body: {
+          'grant_type': 'authorization_code',
+          'client_id': dotenv.env['CLIENT_ID']!,
+          'client_secret': dotenv.env['CLIENT_SECRET']!,
+          'code': code,
+          'redirect_uri': dotenv.env['REDIRECT_URI']!,
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final responseBody = jsonDecode(response.body);
-      return responseBody['access_token'];
-    } else {
-      print('Failed to get access token: ${response.body}');
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        return responseBody['access_token'];
+      } else {
+        print('Failed to get access token: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error during token exchange: $e');
       return null;
     }
   }

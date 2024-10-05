@@ -28,6 +28,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Define the appAuthRedirectScheme placeholder
+        manifestPlaceholders = [
+                appAuthRedirectScheme: "com.swiftycompanion.app"
+        ]
     }
 
     buildTypes {
