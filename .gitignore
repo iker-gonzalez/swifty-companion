@@ -81,5 +81,3 @@ lib/generated_plugin_registrant.dart
 *.js.map
 *.info.json
 
-# Flutter generated metadata
-.metadata/
