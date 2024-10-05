@@ -1,16 +1,15 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class AuthService {
-  final FlutterAppAuth _appAuth = FlutterAppAuth();
-
   String generateRandomString(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final rand = Random();
-    return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
+    return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
+        .join();
   }
 
   String getAuthorizationUrl() {
@@ -24,27 +23,12 @@ class AuthService {
     return '$baseUrl?client_id=$clientId&redirect_uri=$redirectUri&response_type=$responseType&scope=$scope&state=$state';
   }
 
-  Future<String?> login() async {
-    try {
-      final AuthorizationTokenResponse? result = await _appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(
-          dotenv.env['CLIENT_ID']!,
-          dotenv.env['REDIRECT_URI']!,
-          issuer: dotenv.env['ISSUER']!,
-          scopes: ['public'],
-        ),
-      );
-
-      if (result != null) {
-        print('Access Token: ${result.accessToken}');
-        return result.accessToken;
-      } else {
-        print('Authorization failed or was canceled.');
-        return null;
-      }
-    } catch (e) {
-      print('Error during login: $e');
-      return null;
+  Future<void> openAuthorizationUrl() async {
+    final url = getAuthorizationUrl();
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
   }
 

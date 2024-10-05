@@ -3,7 +3,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'auth_service.dart';
 
 void main() async {
-  print('Starting app...');
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
@@ -39,10 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String _accessToken = '';
 
   void _login() async {
-    final token = await _authService.login();
-    setState(() {
-      _accessToken = token ?? '';
-    });
+    await _authService.openAuthorizationUrl();
   }
 
   @override

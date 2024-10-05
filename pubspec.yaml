@@ -38,6 +38,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   flutter_appauth: ^7.0.1
   http: ^0.13.3
+  url_launcher: ^6.0.9
 
 dev_dependencies:
   flutter_test:
