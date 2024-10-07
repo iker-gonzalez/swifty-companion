@@ -6,7 +6,7 @@ class WebViewPage extends StatelessWidget {
   final String initialUrl;
   final Function(String) onCodeReceived;
 
-  WebViewPage({required this.initialUrl, required this.onCodeReceived});
+  const WebViewPage({super.key, required this.initialUrl, required this.onCodeReceived});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +27,9 @@ class WebViewPage extends StatelessWidget {
               final code = uri.queryParameters['code'];
               if (code != null) {
                 onCodeReceived(code);
-                Navigator.pop(context);
+                // Instead of popping here, we'll let the onCodeReceived callback handle navigation
+                return NavigationDecision.prevent;
               }
-              return NavigationDecision.prevent;
             }
             return NavigationDecision.navigate;
           },
@@ -39,7 +39,7 @@ class WebViewPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: WebViewWidget(controller: controller),
     );
