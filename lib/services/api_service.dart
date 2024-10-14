@@ -24,6 +24,7 @@ class ApiService {
           'Authorization': 'Bearer $accessToken',
         },
       );
+      print('API Response: ${response.body}'); // Print the raw response
 
       if (response.statusCode == 200) {
         return UserModel.fromJson(jsonDecode(response.body));
