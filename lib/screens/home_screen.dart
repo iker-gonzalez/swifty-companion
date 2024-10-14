@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../services/auth_service.dart';
 import 'webview_screen.dart';
 import 'user_info_screen.dart';
+import '../models/user_model.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,6 +15,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
   final AuthService _authService = AuthService();
+  bool _isLoggedIn = false;
+  UserModel? _userInfo;
 
   void _login() async {
     final authorizationUrl = _authService.getAuthorizationUrl();
@@ -36,10 +39,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (result != null && mounted) {
-      Navigator.pushReplacement(
+      setState(() {
+        _isLoggedIn = true;
+        _userInfo = result;
+      });
+    }
+  }
+
+  void _logout() {
+    setState(() {
+      _isLoggedIn = false;
+      _userInfo = null;
+    });
+  }
+
+  void _goToProfile() {
+    if (_userInfo != null) {
+      Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => UserInfoScreen(userInfo: result),
+          builder: (context) => UserInfoScreen(userInfo: _userInfo!),
         ),
       );
     }
@@ -49,12 +68,28 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Screen'),
+        title: const Text('Home Screen'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: _login,
-          child: const Text('Login with OAuth2'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            if (_isLoggedIn)
+              ElevatedButton(
+                onPressed: _logout,
+                child: const Text('Logout'),
+              )
+            else
+              ElevatedButton(
+                onPressed: _login,
+                child: const Text('Login with OAuth2'),
+              ),
+            if (_isLoggedIn)
+              ElevatedButton(
+                onPressed: _goToProfile,
+                child: const Text('Go to My Profile'),
+              ),
+          ],
         ),
       ),
     );

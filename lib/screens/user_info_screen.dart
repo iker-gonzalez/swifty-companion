@@ -1,6 +1,7 @@
 // lib/screens/user_info_screen.dart
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../widgets/header_widget.dart';
 
 class UserInfoScreen extends StatelessWidget {
   final UserModel userInfo;
@@ -10,9 +11,7 @@ class UserInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Info'),
-      ),
+      appBar: const Header(title: 'User Info', showBackButton: true),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
