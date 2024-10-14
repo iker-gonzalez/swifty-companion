@@ -4,6 +4,7 @@ import 'user_info_screen.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/header_widget.dart'; // Import the Header widget
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -67,9 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Screen'),
-      ),
+      appBar: const Header(title: 'Home Screen'), // Use the Header widget
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
