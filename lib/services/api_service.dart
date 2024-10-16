@@ -25,7 +25,7 @@ class ApiService {
           'Authorization': 'Bearer $accessToken',
         },
       );
-      print('API Response: ${response.body}'); // Print the raw response
+      print('API User Response: ${response.body}'); // Print the raw response
 
       if (response.statusCode == 200) {
         return UserModel.fromJson(jsonDecode(response.body));
@@ -39,7 +39,7 @@ class ApiService {
     }
   }
 
-  Future<List<ProjectModel>?> getUserProjects() async {
+  Future<List<ProjectModel>?> getUserProjects(int userId) async {
     final accessToken = await getAccessToken();
     if (accessToken == null) {
       print('No access token found');
@@ -48,12 +48,12 @@ class ApiService {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.intra.42.fr/v2/users/88036/projects_users?&page[size]=100'),
+        Uri.parse('https://api.intra.42.fr/v2/users/$userId/projects_users?&page[size]=100'),
         headers: {
           'Authorization': 'Bearer $accessToken',
         },
       );
-      print('API Response: ${response.body}'); // Print the raw response
+      print('API Projects Response: ${response.body}'); // Print the raw response
 
       if (response.statusCode == 200) {
         List<dynamic> projectsJson = jsonDecode(response.body);
@@ -64,6 +64,34 @@ class ApiService {
       }
     } catch (e) {
       print('Error during user projects request: $e');
+      return null;
+    }
+  }
+
+  Future<UserModel?> getSkills() async {
+    final accessToken = await getAccessToken();
+    if (accessToken == null) {
+      print('No access token found');
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.intra.42.fr/v2/skills'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+      print('API Skills Response: ${response.body}'); // Print the raw response
+
+      if (response.statusCode == 200) {
+        return UserModel.fromJson(jsonDecode(response.body));
+      } else {
+        print('Failed to get user info: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error during user info request: $e');
       return null;
     }
   }

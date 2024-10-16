@@ -33,11 +33,10 @@ class _HomeScreenState extends State<HomeScreen> {
             final accessToken = await _authService.exchangeCodeForToken(code);
             if (accessToken != null) {
               final userInfo = await _apiService.getUserInfo();
-              final projects = await _apiService.getUserProjects();
               if (userInfo != null) {
-                print('User Info: $userInfo');
-                print('Projects: $projects');
-                Navigator.pop(context, {'userInfo': userInfo, 'projects': projects});
+                final projects = await _apiService.getUserProjects(userInfo.id);
+                final skills = await _apiService.getSkills();
+                Navigator.pop(context, {'userInfo': userInfo, 'projects': projects, 'skills': skills});
               }
             }
           },
