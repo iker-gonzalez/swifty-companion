@@ -62,11 +62,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _goToProfile() {
-    if (_userInfo != null) {
+    if (_userInfo != null && _projects != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => UserInfoScreen(userInfo: _userInfo!),
+          builder: (context) => UserInfoScreen(userInfo: _userInfo!, projects: _projects!),
         ),
       );
     }
@@ -94,19 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 onPressed: _goToProfile,
                 child: const Text('Go to My Profile'),
-              ),
-            if (_projects != null)
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _projects!.length,
-                  itemBuilder: (context, index) {
-                    final project = _projects![index];
-                    return ListTile(
-                      title: Text(project.name),
-                      subtitle: Text('Status: ${project.status}, Final Mark: ${project.finalMark}'),
-                    );
-                  },
-                ),
               ),
           ],
         ),

@@ -1,12 +1,14 @@
 // lib/screens/user_info_screen.dart
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../models/project_model.dart';
 import '../widgets/header_widget.dart';
 
 class UserInfoScreen extends StatelessWidget {
   final UserModel userInfo;
+  final List<ProjectModel> projects;
 
-  const UserInfoScreen({super.key, required this.userInfo});
+  const UserInfoScreen({super.key, required this.userInfo, required this.projects});
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +41,20 @@ class UserInfoScreen extends StatelessWidget {
               Text('Level: ${userInfo.level}', style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
               Text('Wallet: ${userInfo.wallet}', style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: 16),
+              const Text('Projects:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: projects.length,
+                  itemBuilder: (context, index) {
+                    final project = projects[index];
+                    return ListTile(
+                      title: Text(project.name),
+                      subtitle: Text('Status: ${project.status}, Final Mark: ${project.finalMark}'),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
