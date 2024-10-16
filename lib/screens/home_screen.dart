@@ -1,7 +1,9 @@
+// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'webview_screen.dart';
 import 'user_info_screen.dart';
 import '../models/user_model.dart';
+import '../models/project_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/header_widget.dart'; // Import the Header widget
@@ -18,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   bool _isLoggedIn = false;
   UserModel? _userInfo;
+  List<ProjectModel>? _projects;
 
   void _login() async {
     final authorizationUrl = _authService.getAuthorizationUrl();
@@ -30,8 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
             final accessToken = await _authService.exchangeCodeForToken(code);
             if (accessToken != null) {
               final userInfo = await _apiService.getUserInfo();
+              final projects = await _apiService.getUserProjects();
               if (userInfo != null) {
-                Navigator.pop(context, userInfo);
+                print('User Info: $userInfo');
+                print('Projects: $projects');
+                Navigator.pop(context, {'userInfo': userInfo, 'projects': projects});
               }
             }
           },
@@ -42,7 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result != null && mounted) {
       setState(() {
         _isLoggedIn = true;
-        _userInfo = result;
+        _userInfo = result['userInfo'];
+        _projects = result['projects'];
       });
     }
   }
@@ -51,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isLoggedIn = false;
       _userInfo = null;
+      _projects = null;
     });
   }
 
@@ -87,6 +95,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 onPressed: _goToProfile,
                 child: const Text('Go to My Profile'),
+              ),
+            if (_projects != null)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _projects!.length,
+                  itemBuilder: (context, index) {
+                    final project = _projects![index];
+                    return ListTile(
+                      title: Text(project.name),
+                      subtitle: Text('Status: ${project.status}, Final Mark: ${project.finalMark}'),
+                    );
+                  },
+                ),
               ),
           ],
         ),
