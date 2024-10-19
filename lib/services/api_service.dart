@@ -48,26 +48,43 @@ class ApiService {
       return [];
     }
 
-    try {
-      final response = await http.get(
-        Uri.parse('https://api.intra.42.fr/v2/campus/${campusId.toLowerCase()}/users'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
-      print('Campus Users: ${response.body}'); // Print the raw response
+    List<UserSearchModel> allUsers = [];
+    int page = 1;
+    String poolYear = '2021';
+    bool hasMoreResults = true;
 
-      if (response.statusCode == 200) {
-        final usersList = jsonDecode(response.body) as List<dynamic>;
-        return usersList.map((user) => UserSearchModel.fromJson(user)).toList();
-      } else {
-        print('Failed to get users: ${response.body}');
-        return [];
+    while (hasMoreResults) {
+      try {
+        final response = await http.get(
+          Uri.parse('https://api.intra.42.fr/v2/campus/${campusId.toLowerCase()}/users?page=$page&per_page=100&filter[pool_year]=$poolYear'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+          },
+        );
+        print('Campus Users Page $page: ${response.body}'); // Print the raw response
+
+        if (response.statusCode == 200) {
+          final usersList = jsonDecode(response.body) as List<dynamic>;
+          allUsers.addAll(usersList.map((user) => UserSearchModel.fromJson(user)).toList());
+
+          // Check if there is a next page
+          final linkHeader = response.headers['link'];
+          if (linkHeader != null && linkHeader.contains('rel="next"')) {
+            page++;
+          } else {
+            hasMoreResults = false;
+          }
+        } else {
+          print('Failed to get users: ${response.body}');
+          hasMoreResults = false;
+        }
+      } catch (e) {
+        print('Error during users request: $e');
+        hasMoreResults = false;
       }
-    } catch (e) {
-      print('Error during users request: $e');
-      return [];
     }
+
+    return allUsers;
   }
 
   Future<UserModel?> getLoggedUserInfo() async {

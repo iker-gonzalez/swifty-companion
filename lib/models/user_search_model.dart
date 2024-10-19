@@ -1,4 +1,3 @@
-// lib/models/user_search_model.dart
 class UserSearchModel {
   final int id;
   final String login;
@@ -13,8 +12,8 @@ class UserSearchModel {
   factory UserSearchModel.fromJson(Map<String, dynamic> json) {
     return UserSearchModel(
       id: json['id'] as int,
-      login: json['login'] as String,
-      profilePicture: json['image']['link'] as String,
+      login: json['login'] as String? ?? 'Unknown', // Provide a default value
+      profilePicture: json['image']?['link'] as String? ?? '', // Handle potential null value
     );
   }
 
