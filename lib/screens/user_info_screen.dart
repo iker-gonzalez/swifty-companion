@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/project_model.dart';
+import '../models/cursus_model.dart';
 import '../services/api_service.dart';
 import '../widgets/header_widget.dart';
 
@@ -17,7 +18,7 @@ class UserInfoScreen extends StatefulWidget {
 class _UserInfoScreenState extends State<UserInfoScreen> {
   final ApiService _apiService = ApiService();
   UserModel? _userInfo;
-  List<ProjectModel>? _projects;
+  Cursus? _selectedCursus;
   bool _isLoading = true;
 
   @override
@@ -31,7 +32,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     if (userInfo != null) {
       setState(() {
         _userInfo = userInfo;
-        _projects = userInfo.projects;
+        _selectedCursus = userInfo.cursus.isNotEmpty ? userInfo.cursus[0] : null;
         _isLoading = false;
       });
     }
@@ -69,37 +70,54 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               const SizedBox(height: 8),
               Text('Correction Points: ${_userInfo!.correctionPoint}', style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
-              Text('Level: ${_userInfo!.level}', style: const TextStyle(fontSize: 18)),
-              const SizedBox(height: 8),
               Text('Campus: ${_userInfo!.campus}', style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
-              const Text('Skills:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _userInfo!.skills.length,
-                  itemBuilder: (context, index) {
-                    final skill = _userInfo!.skills[index];
-                    return ListTile(
-                      title: Text(skill.name),
-                      subtitle: Text('Level: ${skill.level}'),
-                    );
-                  },
-                ),
+              DropdownButton<Cursus>(
+                value: _selectedCursus,
+                onChanged: (Cursus? newValue) {
+                  setState(() {
+                    _selectedCursus = newValue;
+                  });
+                },
+                items: _userInfo!.cursus.map<DropdownMenuItem<Cursus>>((Cursus cursus) {
+                  return DropdownMenuItem<Cursus>(
+                    value: cursus,
+                    child: Text(cursus.name),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 8),
-              const Text('Projects:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _projects!.length,
-                  itemBuilder: (context, index) {
-                    final project = _projects![index];
-                    return ListTile(
-                      title: Text(project.name),
-                      subtitle: Text('Status: ${project.status}, Final Mark: ${project.finalMark}'),
-                    );
-                  },
+              if (_selectedCursus != null) ...[
+                Text('Level: ${_selectedCursus!.level}', style: const TextStyle(fontSize: 18)),
+                const SizedBox(height: 8),
+                const Text('Skills:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _selectedCursus!.skills.length,
+                    itemBuilder: (context, index) {
+                      final skill = _selectedCursus!.skills[index];
+                      return ListTile(
+                        title: Text(skill.name),
+                        subtitle: Text('Level: ${skill.level}'),
+                      );
+                    },
+                  ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                const Text('Projects:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _selectedCursus!.projects.length,
+                    itemBuilder: (context, index) {
+                      final project = _selectedCursus!.projects[index];
+                      return ListTile(
+                        title: Text(project.name),
+                        subtitle: Text('Status: ${project.status}, Final Mark: ${project.finalMark ?? 'N/A'}'),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ],
           ),
         ),

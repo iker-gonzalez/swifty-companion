@@ -39,7 +39,8 @@ class AuthService {
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
         final accessToken = responseBody['access_token'];
-        await _saveAccessToken(accessToken);
+        final expiresIn = responseBody['expires_in'];
+        await _saveAccessToken(accessToken, expiresIn);
         return accessToken;
       } else {
         print('Failed to get access token: ${response.body}');
@@ -51,10 +52,12 @@ class AuthService {
     }
   }
 
-  Future<void> _saveAccessToken(String token) async {
+  Future<void> _saveAccessToken(String token, int expiresIn) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('access_token', token);
+      final expirationDate = DateTime.now().add(Duration(seconds: expiresIn));
+      await prefs.setString('token_expiration_date', expirationDate.toIso8601String());
     } catch (e) {
       print('Error saving access token: $e');
     }
@@ -67,6 +70,13 @@ class AuthService {
 
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
+    final expirationDateStr = prefs.getString('token_expiration_date');
+    if (expirationDateStr != null) {
+      final expirationDate = DateTime.parse(expirationDateStr);
+      if (DateTime.now().isAfter(expirationDate)) {
+        return await _refreshToken();
+      }
+    }
     return prefs.getString('access_token');
   }
 
@@ -79,30 +89,37 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>?> getUserInfo() async {
-    final accessToken = await getAccessToken();
-    if (accessToken == null) {
-      print('No access token found');
-      return null;
-    }
-
+  Future<String?> _refreshToken() async {
     try {
-      final response = await http.get(
-        Uri.parse('https://api.intra.42.fr/v2/me'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
+      final response = await http.post(
+        Uri.parse('https://api.intra.42.fr/oauth/token'),
+        body: {
+          'grant_type': 'refresh_token',
+          'client_id': dotenv.env['CLIENT_ID']!,
+          'client_secret': dotenv.env['CLIENT_SECRET']!,
+          'refresh_token': await _getRefreshToken(),
         },
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final responseBody = jsonDecode(response.body);
+        final accessToken = responseBody['access_token'];
+        final expiresIn = responseBody['expires_in'];
+        await _saveAccessToken(accessToken, expiresIn);
+        return accessToken;
       } else {
-        print('Failed to get user info: ${response.body}');
+        print('Failed to refresh access token: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error during user info request: $e');
+      print('Error during token refresh: $e');
       return null;
     }
   }
+
+  Future<String?> _getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('refresh_token');
+  }
+
 }

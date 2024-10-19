@@ -1,19 +1,15 @@
-// lib/services/api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../models/user_search_model.dart';
-
+import 'auth_service.dart';
 
 class ApiService {
-  Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('access_token');
-  }
+  final AuthService _authService = AuthService();
 
   Future<UserModel?> getUserInfo(int userId) async {
-    final accessToken = await getAccessToken();
+    final accessToken = await _authService.getAccessToken();
     if (accessToken == null) {
       print('No access token found');
       return null;
@@ -42,7 +38,7 @@ class ApiService {
   }
 
   Future<List<UserSearchModel>> getUsersByCampus(String campusId) async {
-    final accessToken = await getAccessToken();
+    final accessToken = await _authService.getAccessToken();
     if (accessToken == null) {
       print('No access token found');
       return [];
@@ -88,7 +84,7 @@ class ApiService {
   }
 
   Future<UserModel?> getLoggedUserInfo() async {
-    final accessToken = await getAccessToken();
+    final accessToken = await _authService.getAccessToken();
     if (accessToken == null) {
       print('No access token found');
       return null;

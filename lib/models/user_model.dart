@@ -1,6 +1,7 @@
 // lib/models/user_model.dart
 import 'project_model.dart';
 import 'skill_model.dart';
+import 'cursus_model.dart';
 
 class UserModel {
   final int id;
@@ -10,8 +11,7 @@ class UserModel {
   final String profilePicture;
   final String campus;
   final int correctionPoint;
-  final double level;
-  final List<SkillModel> skills;
+  final List<Cursus> cursus;
   final List<ProjectModel> projects;
 
   UserModel({
@@ -22,33 +22,24 @@ class UserModel {
     required this.profilePicture,
     required this.campus,
     required this.correctionPoint,
-    required this.level,
-    required this.skills,
+    required this.cursus,
     required this.projects,
-// Initialize campus attribute
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    final memberCursus = (json['cursus_users'] as List<dynamic>).firstWhere(
-          (cursus) => cursus['grade'] == 'Member',
-      orElse: () => null,
-    );
+    final cursusList = (json['cursus_users'] as List<dynamic>?)?.map((cursus) {
+      return Cursus.fromJson(cursus);
+    }).toList() ?? [];
 
-    final skills = memberCursus != null
-        ? (memberCursus['skills'] as List<dynamic>).map((skill) {
-      return SkillModel.fromJson(skill);
-    }).toList()
-        : <SkillModel>[];
-
-    final projects = (json['projects_users'] as List<dynamic>).map((project) {
+    final projectsList = (json['projects_users'] as List<dynamic>?)?.map((project) {
       return ProjectModel.fromJson(project);
-    }).toList();
+    }).toList() ?? [];
 
-    final campus = (json['campus'] as List<dynamic>).isNotEmpty
-        ? json['campus'][0]['name'] as String? ?? ''
+    final campus = (json['campus'] as List<dynamic>?)?.isNotEmpty == true
+        ? json['campus']![0]['name'] as String? ?? ''
         : '';
 
-    return UserModel(
+    final userModel = UserModel(
       id: json['id'] as int? ?? 0,
       login: json['login'] as String? ?? '',
       email: json['email'] as String? ?? '',
@@ -56,9 +47,14 @@ class UserModel {
       profilePicture: json['image']?['link'] as String? ?? '',
       campus: campus,
       correctionPoint: json['correction_point'] as int? ?? 0,
-      level: memberCursus != null ? (memberCursus['level'] as num?)?.toDouble() ?? 0.0 : 0.0,
-      skills: skills,
-      projects: projects,
+      cursus: cursusList,
+      projects: projectsList,
     );
+
+    for (var cursus in userModel.cursus) {
+      cursus.setProjects(userModel.projects);
+    }
+
+    return userModel;
   }
 }

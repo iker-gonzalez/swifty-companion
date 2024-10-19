@@ -4,7 +4,6 @@ import 'package:swifty_companion/models/user_search_model.dart';
 import 'webview_screen.dart';
 import 'user_info_screen.dart';
 import '../models/user_model.dart';
-import '../models/project_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/header_widget.dart';
@@ -21,7 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   bool _isLoggedIn = false;
   UserModel? _userInfo;
-  List<ProjectModel>? _projects;
   List<UserSearchModel>? _usersByCampus;
   List<UserSearchModel>? _filteredUsers;
   String _searchQuery = '';
@@ -36,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _isLoggedIn = true;
             _userInfo = userInfo;
-            _projects = userInfo?.projects;
           });
 
           // Fetch users by campus
@@ -51,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _fetchUsersByCampus(String campusName) async {
     final users = await _apiService.getUsersByCampus(campusName.toLowerCase());
-    // print('Users by campus1: $users');
     setState(() {
       _usersByCampus = users;
       _filteredUsers = users;
@@ -80,9 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isLoggedIn = true;
         _userInfo = result['userInfo'];
-        _projects = _userInfo?.projects;
       });
-      await _authService.printAccessToken();
 
       // Fetch users by campus
       if (_userInfo != null) {
@@ -96,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isLoggedIn = false;
       _userInfo = null;
-      _projects = null;
       _usersByCampus = null;
       _filteredUsers = null;
     });
@@ -114,8 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _filterUsers(String query) {
     setState(() {
       _searchQuery = query;
-      // print('Search query: $query');
-      // print('Users by campus: $_usersByCampus');
       _filteredUsers = _usersByCampus
           ?.where((user) => user.login.toLowerCase().contains(query.toLowerCase()))
           .toList();
