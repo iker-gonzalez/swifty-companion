@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../models/user_search_model.dart';
 import 'auth_service.dart';

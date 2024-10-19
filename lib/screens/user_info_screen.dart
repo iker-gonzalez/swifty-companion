@@ -1,7 +1,6 @@
 // lib/screens/user_info_screen.dart
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
-import '../models/project_model.dart';
 import '../models/cursus_model.dart';
 import '../services/api_service.dart';
 import '../widgets/header_widget.dart';

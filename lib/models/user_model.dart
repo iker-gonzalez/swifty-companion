@@ -1,6 +1,5 @@
 // lib/models/user_model.dart
 import 'project_model.dart';
-import 'skill_model.dart';
 import 'cursus_model.dart';
 
 class UserModel {
