@@ -60,6 +60,11 @@ class AuthService {
     }
   }
 
+  Future<bool> checkAccessToken() async {
+    final accessToken = await getAccessToken();
+    return accessToken != null;
+  }
+
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('access_token');

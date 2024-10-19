@@ -28,11 +28,28 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUsersByCampus();
+    _authService.checkAccessToken().then((isLoggedIn) {
+      if (isLoggedIn) {
+        _authService.printAccessToken();
+        _apiService.getLoggedUserInfo().then((userInfo) {
+          setState(() {
+            _isLoggedIn = true;
+            _userInfo = userInfo;
+            _projects = userInfo?.projects;
+          });
+
+          // Fetch users by campus
+          if (_userInfo != null) {
+            final campusName = _userInfo!.campus;
+            _fetchUsersByCampus(campusName);
+          }
+        });
+      }
+    });
   }
 
-  void _fetchUsersByCampus() async {
-    final users = await _apiService.getUsersByCampus('urduliz');
+  void _fetchUsersByCampus(String campusName) async {
+    final users = await _apiService.getUsersByCampus(campusName.toLowerCase());
     setState(() {
       _usersByCampus = users;
       _filteredUsers = users;
@@ -68,11 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Fetch users by campus
       if (_userInfo != null) {
         final campusName = _userInfo!.campus;
-        final users = await _apiService.getUsersByCampus(campusName);
-        setState(() {
-          _usersByCampus = users;
-          _filteredUsers = users;
-        });
+        _fetchUsersByCampus(campusName);
       }
     }
   }
