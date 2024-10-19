@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../models/user_search_model.dart';
+
 
 class ApiService {
   Future<String?> getAccessToken() async {
@@ -24,7 +26,7 @@ class ApiService {
           'Authorization': 'Bearer $accessToken',
         },
       );
-      print('API User Response: ${response.body}'); // Print the raw response
+      print('User $userId info: ${response.body}'); // Print the raw response
 
       if (response.statusCode == 200) {
         final userInfo = jsonDecode(response.body);
@@ -39,7 +41,7 @@ class ApiService {
     }
   }
 
-  Future<List<UserModel>> getUsersByCampus(String campusId) async {
+  Future<List<UserSearchModel>> getUsersByCampus(String campusId) async {
     final accessToken = await getAccessToken();
     if (accessToken == null) {
       print('No access token found');
@@ -53,11 +55,11 @@ class ApiService {
           'Authorization': 'Bearer $accessToken',
         },
       );
-      print('API Users Response: ${response.body}'); // Print the raw response
+      print('Campus Users: ${response.body}'); // Print the raw response
 
       if (response.statusCode == 200) {
         final usersList = jsonDecode(response.body) as List<dynamic>;
-        return usersList.map((user) => UserModel.fromJson(user)).toList();
+        return usersList.map((user) => UserSearchModel.fromJson(user)).toList();
       } else {
         print('Failed to get users: ${response.body}');
         return [];

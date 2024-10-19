@@ -1,5 +1,6 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:swifty_companion/models/user_search_model.dart';
 import 'webview_screen.dart';
 import 'user_info_screen.dart';
 import '../models/user_model.dart';
@@ -21,8 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoggedIn = false;
   UserModel? _userInfo;
   List<ProjectModel>? _projects;
-  List<UserModel>? _usersByCampus;
-  List<UserModel>? _filteredUsers;
+  List<UserSearchModel>? _usersByCampus;
+  List<UserSearchModel>? _filteredUsers;
   String _searchQuery = '';
 
   @override
@@ -50,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _fetchUsersByCampus(String campusName) async {
     final users = await _apiService.getUsersByCampus(campusName.toLowerCase());
+    // print('Users by campus1: $users');
     setState(() {
       _usersByCampus = users;
       _filteredUsers = users;
@@ -112,9 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void _filterUsers(String query) {
     setState(() {
       _searchQuery = query;
-      _filteredUsers = _usersByCampus?.where((user) {
-        return user.login.toLowerCase().contains(query.toLowerCase());
-      }).toList();
+      // print('Search query: $query');
+      // print('Users by campus: $_usersByCampus');
+      _filteredUsers = _usersByCampus
+          ?.where((user) => user.login.toLowerCase().contains(query.toLowerCase()))
+          .toList();
     });
   }
 
@@ -141,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () => _goToProfile(_userInfo!.id),
                 child: const Text('Go to My Profile'),
               ),
-            if (_filteredUsers != null)
+            if (_filteredUsers != null) ...[
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
@@ -152,20 +156,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   onChanged: _filterUsers,
                 ),
               ),
-            if (_filteredUsers != null)
               Expanded(
                 child: ListView.builder(
                   itemCount: _filteredUsers!.length,
                   itemBuilder: (context, index) {
                     final user = _filteredUsers![index];
                     return ListTile(
-                      title: Text(user.usualFullName),
-                      subtitle: Text(user.email),
+                      title: Text(user.login),
                       onTap: () => _goToProfile(user.id),
                     );
                   },
                 ),
               ),
+            ],
           ],
         ),
       ),
