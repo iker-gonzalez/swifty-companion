@@ -21,6 +21,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoggedIn = false;
   UserModel? _userInfo;
   List<ProjectModel>? _projects;
+  List<UserModel>? _filteredUsers;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsersByCampus();
+  }
+
+  void _fetchUsersByCampus() async {
+    final users = await _apiService.getUsersByCampus('urduliz');
+    setState(() {
+      _filteredUsers = users;
+    });
+  }
 
   void _login() async {
     final authorizationUrl = _authService.getAuthorizationUrl();
@@ -32,12 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
           onCodeReceived: (code) async {
             final accessToken = await _authService.exchangeCodeForToken(code);
             if (accessToken != null) {
-              final userInfo = await _apiService.getUserInfo();
-              if (userInfo != null) {
-                final projects = await _apiService.getUserProjects(userInfo.id);
-                final skills = await _apiService.getSkills();
-                Navigator.pop(context, {'userInfo': userInfo, 'projects': projects, 'skills': skills});
-              }
+              final loggedUserInfo = await _apiService.getLoggedUserInfo(); // Replace 0 with the actual userId
+              Navigator.pop(context, {'userInfo': loggedUserInfo});
             }
           },
         ),
@@ -48,8 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isLoggedIn = true;
         _userInfo = result['userInfo'];
-        _projects = result['projects'];
+        _projects = _userInfo?.projects;
       });
+      await _authService.printAccessToken();
     }
   }
 
@@ -94,6 +105,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 onPressed: _goToProfile,
                 child: const Text('Go to My Profile'),
+              ),
+            if (_filteredUsers != null)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _filteredUsers!.length,
+                  itemBuilder: (context, index) {
+                    final user = _filteredUsers![index];
+                    return ListTile(
+                      title: Text(user.usualFullName),
+                      subtitle: Text(user.email),
+                    );
+                  },
+                ),
               ),
           ],
         ),

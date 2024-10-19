@@ -30,18 +30,30 @@ class UserInfoScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('First Name: ${userInfo.firstName}', style: const TextStyle(fontSize: 18)),
-              const SizedBox(height: 8),
-              Text('Last Name: ${userInfo.lastName}', style: const TextStyle(fontSize: 18)),
+              Text('Full Name: ${userInfo.usualFullName}', style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
               Text('Login: ${userInfo.login}', style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
               Text('Email: ${userInfo.email}', style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
+              Text('Correction Points: ${userInfo.correctionPoint}', style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: 8),
               Text('Level: ${userInfo.level}', style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
-              Text('Wallet: ${userInfo.wallet}', style: const TextStyle(fontSize: 18)),
-              const SizedBox(height: 16),
+              const Text('Skills:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: userInfo.skills.length,
+                  itemBuilder: (context, index) {
+                    final skill = userInfo.skills[index];
+                    return ListTile(
+                      title: Text(skill.name),
+                      subtitle: Text('Level: ${skill.level}'),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
               const Text('Projects:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Expanded(
                 child: ListView.builder(

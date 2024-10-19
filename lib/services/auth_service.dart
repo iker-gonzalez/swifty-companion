@@ -65,6 +65,15 @@ class AuthService {
     return prefs.getString('access_token');
   }
 
+  Future<void> printAccessToken() async {
+    final accessToken = await getAccessToken();
+    if (accessToken != null) {
+      print('Access Token: $accessToken');
+    } else {
+      print('No access token found');
+    }
+  }
+
   Future<Map<String, dynamic>?> getUserInfo() async {
     final accessToken = await getAccessToken();
     if (accessToken == null) {
