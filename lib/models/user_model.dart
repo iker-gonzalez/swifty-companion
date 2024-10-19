@@ -8,6 +8,7 @@ class UserModel {
   final String email;
   final String usualFullName;
   final String profilePicture;
+  final String campus;
   final int correctionPoint;
   final double level;
   final List<SkillModel> skills;
@@ -19,10 +20,12 @@ class UserModel {
     required this.email,
     required this.usualFullName,
     required this.profilePicture,
+    required this.campus,
     required this.correctionPoint,
     required this.level,
     required this.skills,
     required this.projects,
+// Initialize campus attribute
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -41,12 +44,17 @@ class UserModel {
       return ProjectModel.fromJson(project);
     }).toList();
 
+    final campus = (json['campus'] as List<dynamic>).isNotEmpty
+        ? json['campus'][0]['name'] as String? ?? ''
+        : '';
+
     return UserModel(
       id: json['id'] as int? ?? 0,
       login: json['login'] as String? ?? '',
       email: json['email'] as String? ?? '',
       usualFullName: json['usual_full_name'] as String? ?? '',
       profilePicture: json['image']?['link'] as String? ?? '',
+      campus: campus,
       correctionPoint: json['correction_point'] as int? ?? 0,
       level: memberCursus != null ? (memberCursus['level'] as num?)?.toDouble() ?? 0.0 : 0.0,
       skills: skills,

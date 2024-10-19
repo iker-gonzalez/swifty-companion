@@ -6,7 +6,7 @@ import '../models/user_model.dart';
 import '../models/project_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
-import '../widgets/header_widget.dart'; // Import the Header widget
+import '../widgets/header_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -21,7 +21,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoggedIn = false;
   UserModel? _userInfo;
   List<ProjectModel>? _projects;
+  List<UserModel>? _usersByCampus;
   List<UserModel>? _filteredUsers;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _fetchUsersByCampus() async {
     final users = await _apiService.getUsersByCampus('urduliz');
     setState(() {
+      _usersByCampus = users;
       _filteredUsers = users;
     });
   }
@@ -46,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onCodeReceived: (code) async {
             final accessToken = await _authService.exchangeCodeForToken(code);
             if (accessToken != null) {
-              final loggedUserInfo = await _apiService.getLoggedUserInfo(); // Replace 0 with the actual userId
+              final loggedUserInfo = await _apiService.getLoggedUserInfo();
               Navigator.pop(context, {'userInfo': loggedUserInfo});
             }
           },
@@ -61,6 +64,16 @@ class _HomeScreenState extends State<HomeScreen> {
         _projects = _userInfo?.projects;
       });
       await _authService.printAccessToken();
+
+      // Fetch users by campus
+      if (_userInfo != null) {
+        final campusName = _userInfo!.campus;
+        final users = await _apiService.getUsersByCampus(campusName);
+        setState(() {
+          _usersByCampus = users;
+          _filteredUsers = users;
+        });
+      }
     }
   }
 
@@ -69,24 +82,33 @@ class _HomeScreenState extends State<HomeScreen> {
       _isLoggedIn = false;
       _userInfo = null;
       _projects = null;
+      _usersByCampus = null;
+      _filteredUsers = null;
     });
   }
 
-  void _goToProfile() {
-    if (_userInfo != null && _projects != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => UserInfoScreen(userInfo: _userInfo!, projects: _projects!),
-        ),
-      );
-    }
+  void _goToProfile(int userId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserInfoScreen(userId: userId),
+      ),
+    );
+  }
+
+  void _filterUsers(String query) {
+    setState(() {
+      _searchQuery = query;
+      _filteredUsers = _usersByCampus?.where((user) {
+        return user.login.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const Header(title: 'Home Screen'), // Use the Header widget
+      appBar: const Header(title: 'Home Screen'),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -103,8 +125,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             if (_isLoggedIn)
               ElevatedButton(
-                onPressed: _goToProfile,
+                onPressed: () => _goToProfile(_userInfo!.id),
                 child: const Text('Go to My Profile'),
+              ),
+            if (_filteredUsers != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Search by login',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: _filterUsers,
+                ),
               ),
             if (_filteredUsers != null)
               Expanded(
@@ -115,6 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     return ListTile(
                       title: Text(user.usualFullName),
                       subtitle: Text(user.email),
+                      onTap: () => _goToProfile(user.id),
                     );
                   },
                 ),

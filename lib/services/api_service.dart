@@ -48,7 +48,7 @@ class ApiService {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.intra.42.fr/v2/campus/$campusId/users'),
+        Uri.parse('https://api.intra.42.fr/v2/campus/${campusId.toLowerCase()}/users'),
         headers: {
           'Authorization': 'Bearer $accessToken',
         },
