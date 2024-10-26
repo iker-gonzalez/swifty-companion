@@ -5,6 +5,7 @@ class ProjectModel {
   final String status;
   final int? finalMark;
   final List<int> cursusIds;
+  final bool validated; // New attribute
 
   ProjectModel({
     required this.id,
@@ -12,6 +13,7 @@ class ProjectModel {
     required this.status,
     this.finalMark,
     required this.cursusIds,
+    required this.validated,
   });
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class ProjectModel {
       status: json['status'] as String,
       finalMark: json['final_mark'] as int?,
       cursusIds: (json['cursus_ids'] as List<dynamic>).map((id) => id as int).toList(),
+      validated: json['validated?'] as bool? ?? false, // Handle null value
     );
   }
 }

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/cursus_model.dart';
-import '../models/skill_model.dart';  // Add this import
+import '../models/skill_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/header_widget.dart';
@@ -249,8 +249,12 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                       return Card(
                         child: ListTile(
                           title: Text(project.name),
-                          subtitle: Text(
-                              'Status: ${project.status}\nFinal Mark: ${project.finalMark ?? 'N/A'}'),
+                          subtitle: Text('Final Mark: ${project.finalMark ?? 'N/A'}'),
+                          trailing: (project.validated)
+                              ? const Icon(Icons.check_circle, color: Colors.green)
+                              : project.status == 'in_progress'
+                              ? const Icon(Icons.access_time, color: Colors.orange)
+                              : null,
                         ),
                       );
                     },
