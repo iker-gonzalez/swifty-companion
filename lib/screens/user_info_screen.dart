@@ -71,10 +71,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   }
 
   double _calculateLevelProgress(double level, double maxLevel) {
-    // Get the whole number and decimal parts
     int currentLevel = level.floor();
     double progress = level - currentLevel;
-
     return (currentLevel + progress) / maxLevel;
   }
 
@@ -82,7 +80,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     if (cursusName == '42cursus') return 21.0;
     if (cursusName == 'C Piscine') return 11.0;
     if (cursusName == 'Discovery Piscine - Web') return 15.0;
-    return 1.0; // Default max level
+    return 1.0;
   }
 
   Color _getSkillColor(double level) {
@@ -91,7 +89,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     return Colors.red;
   }
 
-  Widget _buildSkillCard(SkillModel skill) {  // Updated type here
+  Widget _buildSkillCard(SkillModel skill) {
     return Card(
       color: _getSkillColor(skill.level),
       child: Padding(
@@ -178,19 +176,15 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),
-                Text('Email: ${_userInfo!.email}',
-                    style: const TextStyle(fontSize: 18)),
+                Text('Email: ${_userInfo!.email}', style: const TextStyle(fontSize: 18)),
                 const SizedBox(height: 8),
-                Text('Correction Points: ${_userInfo!.correctionPoint}',
-                    style: const TextStyle(fontSize: 18)),
+                Text('Correction Points: ${_userInfo!.correctionPoint}', style: const TextStyle(fontSize: 18)),
                 const SizedBox(height: 8),
-                Text('Campus: ${_userInfo!.campus}',
-                    style: const TextStyle(fontSize: 18)),
+                Text('Campus: ${_userInfo!.campus}', style: const TextStyle(fontSize: 18)),
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),
-                const Text('Cursus:',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text('Cursus:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 DropdownButton<Cursus>(
                   value: _selectedCursus,
                   onChanged: (Cursus? newValue) {
@@ -198,8 +192,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                       _selectedCursus = newValue;
                     });
                   },
-                  items: _userInfo!.cursus
-                      .map<DropdownMenuItem<Cursus>>((Cursus cursus) {
+                  items: _userInfo!.cursus.map<DropdownMenuItem<Cursus>>((Cursus cursus) {
                     return DropdownMenuItem<Cursus>(
                       value: cursus,
                       child: Text(cursus.name),
@@ -208,16 +201,14 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 ),
                 if (_selectedCursus != null) ...[
                   const SizedBox(height: 16),
-                  Text('Level: ${_selectedCursus!.level.floor()}',
-                      style: const TextStyle(fontSize: 18)),
+                  Text('Level: ${_selectedCursus!.level.floor()}', style: const TextStyle(fontSize: 18)),
                   LinearProgressIndicator(
                     value: _calculateLevelProgress(_selectedCursus!.level, _getMaxLevel(_selectedCursus!.name)),
                     backgroundColor: Colors.grey[300],
                     color: Colors.blue,
                   ),
                   const SizedBox(height: 16),
-                  const Text('Skills:',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text('Skills:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   LayoutBuilder(
                     builder: (context, constraints) {
@@ -238,23 +229,24 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  const Text('Projects:',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text('Projects:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _selectedCursus!.projects.length,
+                    itemCount: _selectedCursus!.projects
+                        .where((project) => project.validated || project.status == 'finished')
+                        .length,
                     itemBuilder: (context, index) {
-                      final project = _selectedCursus!.projects[index];
+                      final project = _selectedCursus!.projects
+                          .where((project) => project.validated || project.status == 'finished')
+                          .toList()[index];
                       return Card(
                         child: ListTile(
                           title: Text(project.name),
                           subtitle: Text('Final Mark: ${project.finalMark ?? 'N/A'}'),
-                          trailing: (project.validated)
+                          trailing: project.validated
                               ? const Icon(Icons.check_circle, color: Colors.green)
-                              : project.status == 'in_progress'
-                              ? const Icon(Icons.access_time, color: Colors.orange)
-                              : null,
+                              : const Icon(Icons.cancel, color: Colors.red),
                         ),
                       );
                     },
