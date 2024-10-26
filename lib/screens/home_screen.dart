@@ -99,7 +99,10 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UserInfoScreen(userId: userId),
+        builder: (context) => UserInfoScreen(
+          userId: userId,
+          loggedInUserProfilePicture: _userInfo?.profilePicture ?? '',
+        ),
       ),
     );
   }
@@ -116,51 +119,59 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const Header(title: 'Home Screen'),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            if (_isLoggedIn)
-              ElevatedButton(
-                onPressed: _logout,
-                child: const Text('Logout'),
-              )
-            else
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('Login with OAuth2'),
-              ),
-            if (_isLoggedIn)
-              ElevatedButton(
-                onPressed: () => _goToProfile(_userInfo!.id),
-                child: const Text('Go to My Profile'),
-              ),
-            if (_filteredUsers != null) ...[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Search by login',
-                    border: OutlineInputBorder(),
+      appBar: Header(
+        title: 'Home Screen',
+        isLoggedIn: _isLoggedIn,
+        profilePictureUrl: _userInfo?.profilePicture ?? '',
+        onLogout: _logout,
+        onGoToProfile: () => _goToProfile(_userInfo!.id),
+      ),
+      body: Container(
+        color: Colors.grey[200],
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                if (!_isLoggedIn)
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: const Text('Login with OAuth2'),
                   ),
-                  onChanged: _filterUsers,
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _filteredUsers!.length,
-                  itemBuilder: (context, index) {
-                    final user = _filteredUsers![index];
-                    return ListTile(
-                      title: Text(user.login),
-                      onTap: () => _goToProfile(user.id),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ],
+                if (_filteredUsers != null) ...[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Search by login',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: _filterUsers,
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _filteredUsers!.length,
+                      itemBuilder: (context, index) {
+                        final user = _filteredUsers![index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            title: Text(
+                              user.login,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            onTap: () => _goToProfile(user.id),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );

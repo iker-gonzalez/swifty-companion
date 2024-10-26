@@ -7,8 +7,13 @@ import '../widgets/header_widget.dart';
 
 class UserInfoScreen extends StatefulWidget {
   final int userId;
+  final String loggedInUserProfilePicture;
 
-  const UserInfoScreen({super.key, required this.userId});
+  const UserInfoScreen({
+    super.key,
+    required this.userId,
+    required this.loggedInUserProfilePicture,
+  });
 
   @override
   _UserInfoScreenState createState() => _UserInfoScreenState();
@@ -37,10 +42,25 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     }
   }
 
+  void _logout() {
+    // Implement logout functionality
+  }
+
+  void _goToProfile() {
+    // Implement navigation to profile functionality
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const Header(title: 'User Info', showBackButton: true),
+      appBar: Header(
+        title: 'User Info',
+        showBackButton: true,
+        isLoggedIn: true,
+        profilePictureUrl: widget.loggedInUserProfilePicture,
+        onLogout: _logout,
+        onGoToProfile: _goToProfile,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _userInfo == null
