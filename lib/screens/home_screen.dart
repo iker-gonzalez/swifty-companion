@@ -93,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => UserInfoScreen(
             userId: _userInfo!.id,
             loggedInUserProfilePicture: _userInfo!.profilePicture,
+            loggedInUserId: _userInfo!.id,
           ),
         ),
       );
@@ -140,6 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => UserInfoScreen(
           userId: userId,
           loggedInUserProfilePicture: _userInfo?.profilePicture ?? '',
+          loggedInUserId: _userInfo?.id ?? 0,
         ),
       ),
     );
