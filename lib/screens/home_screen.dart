@@ -12,115 +12,168 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Services
   final ApiService _apiService = ApiService();
   final AuthService _authService = AuthService();
-  bool _isLoggedIn = false;
-  bool _isLoading = false;
-  bool _isInitialLogin = false;  // Add this flag to track initial login
+
+  // State variables
+  late bool _isLoggedIn;
+  late bool _isLoading;
+  late bool _isInitialLogin;
   UserModel? _userInfo;
   List<UserSearchModel>? _usersByCampus;
   List<UserSearchModel>? _filteredUsers;
-  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    _initializeState();
     _checkLoginStatus();
   }
 
+  void _initializeState() {
+    _isLoggedIn = false;
+    _isLoading = false;
+    _isInitialLogin = false;
+    _userInfo = null;
+    _usersByCampus = null;
+    _filteredUsers = null;
+  }
+
   Future<void> _checkLoginStatus() async {
+    if (!mounted) return;
+
     setState(() => _isLoading = true);
+
     try {
       final isLoggedIn = await _authService.checkAccessToken();
-      if (isLoggedIn) {
+      if (isLoggedIn && mounted) {
         _authService.printAccessToken();
         final userInfo = await _apiService.getLoggedUserInfo();
+
+        if (!mounted) return;
+
         setState(() {
           _isLoggedIn = true;
           _userInfo = userInfo;
         });
 
         if (_userInfo != null) {
-          final campusName = _userInfo!.campus;
-          await _fetchUsersByCampus(campusName);
+          await _fetchUsersByCampus(_userInfo!.campus);
         }
       }
+    } catch (e) {
+      debugPrint('Error checking login status: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  void _login() async {
+  Future<void> _login() async {
+    if (!mounted) return;
+
     final authorizationUrl = _authService.getAuthorizationUrl();
-    setState(() => _isInitialLogin = true);  // Set flag before navigation
+    setState(() => _isInitialLogin = true);
 
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WebViewPage(
-          initialUrl: authorizationUrl,
-          onCodeReceived: (code) async {
-            final accessToken = await _authService.exchangeCodeForToken(code);
-            if (accessToken != null) {
-              final loggedUserInfo = await _apiService.getLoggedUserInfo();
-              Navigator.pop(context, {'userInfo': loggedUserInfo});
-            }
-          },
-        ),
-      ),
-    );
+    try {
+      final result = await _handleWebViewNavigation(authorizationUrl);
+      if (!mounted) return;
 
-    if (result != null && mounted) {
-      setState(() {
-        _isLoggedIn = true;
-        _userInfo = result['userInfo'];
-        _isLoading = true;  // Show loading while fetching users
-      });
-
-      // Update users by campus before navigating
-      if (_userInfo != null) {
-        await _fetchUsersByCampus(_userInfo!.campus);
+      if (result != null) {
+        await _handleSuccessfulLogin(result);
       }
-
-      // Navigate to UserInfoScreen
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => UserInfoScreen(
-            userId: _userInfo!.id,
-            loggedInUserProfilePicture: _userInfo!.profilePicture,
-            loggedInUserId: _userInfo!.id,
-          ),
-        ),
-      );
-
-      // Reset flags after navigation
+    } catch (e) {
+      debugPrint('Error during login: $e');
+    } finally {
       if (mounted) {
         setState(() {
           _isInitialLogin = false;
           _isLoading = false;
         });
       }
-    } else {
-      // Reset flag if login was cancelled
-      setState(() => _isInitialLogin = false);
     }
   }
 
+  Future<Map<String, dynamic>?> _handleWebViewNavigation(String authorizationUrl) {
+    return Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(
+        builder: (context) => WebViewPage(
+          initialUrl: authorizationUrl,
+          onCodeReceived: _handleCodeReceived,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleCodeReceived(String code) async {
+    final accessToken = await _authService.exchangeCodeForToken(code);
+    if (accessToken != null) {
+      final loggedUserInfo = await _apiService.getLoggedUserInfo();
+      if (!mounted) return;
+      Navigator.of(context).pop({'userInfo': loggedUserInfo});
+    }
+  }
+
+  Future<void> _handleSuccessfulLogin(Map<String, dynamic> result) async {
+    setState(() {
+      _isLoggedIn = true;
+      _userInfo = result['userInfo'];
+      _isLoading = true;
+    });
+
+    if (_userInfo != null) {
+      await _fetchUsersByCampus(_userInfo!.campus);
+    }
+
+    if (!mounted) return;
+
+    await _navigateToUserInfoScreen();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isInitialLogin = false;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _navigateToUserInfoScreen() {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => UserInfoScreen(
+          userId: _userInfo!.id,
+          loggedInUserProfilePicture: _userInfo!.profilePicture,
+          loggedInUserId: _userInfo!.id,
+        ),
+      ),
+    );
+  }
+
   Future<void> _fetchUsersByCampus(String campusName) async {
+    if (!mounted) return;
+
     setState(() => _isLoading = true);
+
     try {
       final users = await _apiService.getUsersByCampus(campusName.toLowerCase());
+      if (!mounted) return;
+
       setState(() {
         _usersByCampus = users;
         _filteredUsers = users;
       });
+    } catch (e) {
+      debugPrint('Error fetching users by campus: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -135,6 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _goToProfile(int userId) {
+    if (!mounted) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -149,7 +204,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _filterUsers(String query) {
     setState(() {
-      _searchQuery = query;
       _filteredUsers = _usersByCampus
           ?.where((user) => user.login.toLowerCase().contains(query.toLowerCase()))
           .toList();
@@ -164,7 +218,11 @@ class _HomeScreenState extends State<HomeScreen> {
         isLoggedIn: _isLoggedIn,
         profilePictureUrl: _userInfo?.profilePicture ?? '',
         onLogout: _logout,
-        onGoToProfile: () => _goToProfile(_userInfo!.id),
+        onGoToProfile: () {
+          if (_userInfo != null) {
+            _goToProfile(_userInfo!.id);
+          }
+        },
       ),
       body: Container(
         color: Colors.grey[200],
@@ -185,7 +243,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: CircularProgressIndicator(),
                     ),
                   )
-                // Only show user list if not in initial login flow
                 else if (_filteredUsers != null && !_isInitialLogin) ...[
                   Padding(
                     padding: const EdgeInsets.all(8.0),

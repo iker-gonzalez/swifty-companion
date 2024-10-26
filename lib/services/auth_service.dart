@@ -3,8 +3,11 @@ import 'dart:math';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
 
 class AuthService {
+  final Logger _logger = Logger();
+
   String generateRandomString(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final rand = Random();
@@ -43,11 +46,11 @@ class AuthService {
         await _saveAccessToken(accessToken, expiresIn);
         return accessToken;
       } else {
-        print('Failed to get access token: ${response.body}');
+        _logger.e('Failed to get access token: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error during token exchange: $e');
+      _logger.e('Error during token exchange: $e');
       return null;
     }
   }
@@ -59,7 +62,7 @@ class AuthService {
       final expirationDate = DateTime.now().add(Duration(seconds: expiresIn));
       await prefs.setString('token_expiration_date', expirationDate.toIso8601String());
     } catch (e) {
-      print('Error saving access token: $e');
+      _logger.e('Error saving access token: $e');
     }
   }
 
@@ -83,9 +86,9 @@ class AuthService {
   Future<void> printAccessToken() async {
     final accessToken = await getAccessToken();
     if (accessToken != null) {
-      print('Access Token: $accessToken');
+      _logger.i('Access Token: $accessToken');
     } else {
-      print('No access token found');
+      _logger.i('No access token found');
     }
   }
 
@@ -108,11 +111,11 @@ class AuthService {
         await _saveAccessToken(accessToken, expiresIn);
         return accessToken;
       } else {
-        print('Failed to refresh access token: ${response.body}');
+        _logger.e('Failed to refresh access token: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error during token refresh: $e');
+      _logger.e('Error during token refresh: $e');
       return null;
     }
   }
@@ -128,5 +131,4 @@ class AuthService {
     await prefs.remove('token_expiration_date');
     await prefs.remove('refresh_token');
   }
-
 }

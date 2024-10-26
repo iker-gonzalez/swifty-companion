@@ -21,7 +21,7 @@ class UserInfoScreen extends StatefulWidget {
   });
 
   @override
-  _UserInfoScreenState createState() => _UserInfoScreenState();
+  State<UserInfoScreen> createState() => _UserInfoScreenState();
 }
 
 class _UserInfoScreenState extends State<UserInfoScreen> {
@@ -37,7 +37,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     _fetchUserInfo();
   }
 
-  void _fetchUserInfo() async {
+  Future<void> _fetchUserInfo() async {
     final userInfo = await _apiService.getUserInfo(widget.userId);
     if (userInfo != null) {
       setState(() {
@@ -48,8 +48,10 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     }
   }
 
-  void _logout() async {
+  Future<void> _logout(BuildContext context) async {
     await _authService.logout();
+    if (!context.mounted) return;
+
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -136,7 +138,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         showBackButton: true,
         isLoggedIn: true,
         profilePictureUrl: widget.loggedInUserProfilePicture,
-        onLogout: _logout,
+        onLogout:  ()=> _logout(context),
         onGoToProfile: _goToProfile,
       ),
       body: Container(
