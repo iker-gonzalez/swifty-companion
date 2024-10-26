@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -18,6 +17,12 @@ jobs:
         uses: subosito/flutter-action@v1
         with:
           flutter-version: '3.24.0'
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo "API_UID=${{ secrets.API_UID }}" >> .env
+          echo "API_SECRET=${{ secrets.API_SECRET }}" >> .env
 
       - name: Get dependencies
         run: flutter pub get
