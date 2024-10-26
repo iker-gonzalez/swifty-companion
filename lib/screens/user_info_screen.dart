@@ -1,7 +1,7 @@
-// lib/screens/user_info_screen.dart
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/cursus_model.dart';
+import '../models/skill_model.dart';  // Add this import
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/header_widget.dart';
@@ -10,13 +10,13 @@ import 'home_screen.dart';
 class UserInfoScreen extends StatefulWidget {
   final int userId;
   final String loggedInUserProfilePicture;
-  final int loggedInUserId; // Add this field
+  final int loggedInUserId;
 
   const UserInfoScreen({
     super.key,
     required this.userId,
     required this.loggedInUserProfilePicture,
-    required this.loggedInUserId, // Add this field
+    required this.loggedInUserId,
   });
 
   @override
@@ -61,9 +61,58 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => UserInfoScreen(
-          userId: widget.loggedInUserId, // Use logged-in user's ID
+          userId: widget.loggedInUserId,
           loggedInUserProfilePicture: widget.loggedInUserProfilePicture,
-          loggedInUserId: widget.loggedInUserId, // Pass logged-in user's ID
+          loggedInUserId: widget.loggedInUserId,
+        ),
+      ),
+    );
+  }
+
+  double _calculateLevelProgress(double level) {
+    return level - level.floor();
+  }
+
+  Color _getSkillColor(double level) {
+    if (level >= 10) return Colors.green;
+    if (level >= 5) return Colors.orange;
+    return Colors.red;
+  }
+
+  Widget _buildSkillCard(SkillModel skill) {  // Updated type here
+    return Card(
+      color: _getSkillColor(skill.level),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    skill.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Level: ${skill.level.toStringAsFixed(1)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -81,7 +130,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         onGoToProfile: _goToProfile,
       ),
       body: Container(
-        color: Colors.grey[200], // Match background color with HomeScreen
+        color: Colors.grey[200],
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _userInfo == null
@@ -117,15 +166,19 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),
-                Text('Email: ${_userInfo!.email}', style: const TextStyle(fontSize: 18)),
+                Text('Email: ${_userInfo!.email}',
+                    style: const TextStyle(fontSize: 18)),
                 const SizedBox(height: 8),
-                Text('Correction Points: ${_userInfo!.correctionPoint}', style: const TextStyle(fontSize: 18)),
+                Text('Correction Points: ${_userInfo!.correctionPoint}',
+                    style: const TextStyle(fontSize: 18)),
                 const SizedBox(height: 8),
-                Text('Campus: ${_userInfo!.campus}', style: const TextStyle(fontSize: 18)),
+                Text('Campus: ${_userInfo!.campus}',
+                    style: const TextStyle(fontSize: 18)),
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),
-                const Text('Cursus:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text('Cursus:',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 DropdownButton<Cursus>(
                   value: _selectedCursus,
                   onChanged: (Cursus? newValue) {
@@ -133,41 +186,60 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                       _selectedCursus = newValue;
                     });
                   },
-                  items: _userInfo!.cursus.map<DropdownMenuItem<Cursus>>((Cursus cursus) {
+                  items: _userInfo!.cursus
+                      .map<DropdownMenuItem<Cursus>>((Cursus cursus) {
                     return DropdownMenuItem<Cursus>(
                       value: cursus,
                       child: Text(cursus.name),
                     );
                   }).toList(),
                 ),
-                const SizedBox(height: 16),
                 if (_selectedCursus != null) ...[
-                  Text('Level: ${_selectedCursus!.level}', style: const TextStyle(fontSize: 18)),
                   const SizedBox(height: 16),
-                  const Text('Skills:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _selectedCursus!.skills.length,
-                    itemBuilder: (context, index) {
-                      final skill = _selectedCursus!.skills[index];
-                      return ListTile(
-                        title: Text(skill.name),
-                        subtitle: Text('Level: ${skill.level}'),
+                  Text('Level: ${_selectedCursus!.level.floor()}',
+                      style: const TextStyle(fontSize: 18)),
+                  LinearProgressIndicator(
+                    value: _calculateLevelProgress(_selectedCursus!.level),
+                    backgroundColor: Colors.grey[300],
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Skills:',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: constraints.maxWidth > 600 ? 3 : 2,
+                          childAspectRatio: 2.5,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: _selectedCursus!.skills.length,
+                        itemBuilder: (context, index) {
+                          return _buildSkillCard(_selectedCursus!.skills[index]);
+                        },
                       );
                     },
                   ),
                   const SizedBox(height: 16),
-                  const Text('Projects:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text('Projects:',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _selectedCursus!.projects.length,
                     itemBuilder: (context, index) {
                       final project = _selectedCursus!.projects[index];
-                      return ListTile(
-                        title: Text(project.name),
-                        subtitle: Text('Status: ${project.status}, Final Mark: ${project.finalMark ?? 'N/A'}'),
+                      return Card(
+                        child: ListTile(
+                          title: Text(project.name),
+                          subtitle: Text(
+                              'Status: ${project.status}\nFinal Mark: ${project.finalMark ?? 'N/A'}'),
+                        ),
                       );
                     },
                   ),
