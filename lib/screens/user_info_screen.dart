@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/cursus_model.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../widgets/header_widget.dart';
+import 'home_screen.dart';
 
 class UserInfoScreen extends StatefulWidget {
   final int userId;
@@ -21,6 +23,7 @@ class UserInfoScreen extends StatefulWidget {
 
 class _UserInfoScreenState extends State<UserInfoScreen> {
   final ApiService _apiService = ApiService();
+  final AuthService _authService = AuthService();
   UserModel? _userInfo;
   Cursus? _selectedCursus;
   bool _isLoading = true;
@@ -42,8 +45,13 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     }
   }
 
-  void _logout() {
-    // Implement logout functionality
+  void _logout() async {
+    await _authService.logout();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (Route<dynamic> route) => false,
+    );
   }
 
   void _goToProfile() {

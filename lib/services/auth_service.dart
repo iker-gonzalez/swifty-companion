@@ -122,4 +122,11 @@ class AuthService {
     return prefs.getString('refresh_token');
   }
 
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('access_token');
+    await prefs.remove('token_expiration_date');
+    await prefs.remove('refresh_token');
+  }
+
 }
