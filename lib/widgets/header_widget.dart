@@ -24,10 +24,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(
         title,
-        style: const TextStyle(color: Colors.white), // Set the title color to white
+        style: const TextStyle(color: Colors.white),
       ),
-      backgroundColor: Colors.black,
-      iconTheme: const IconThemeData(color: Colors.white), // Set the icon color to white
+      backgroundColor: Colors.teal,
+      iconTheme: const IconThemeData(color: Colors.white),
       leading: showBackButton
           ? IconButton(
         icon: const Icon(Icons.arrow_back),
@@ -37,6 +37,10 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
       )
           : null,
       actions: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('assets/42logo.png', height: 40),
+        ),
         if (isLoggedIn)
           PopupMenuButton<int>(
             icon: CircleAvatar(
