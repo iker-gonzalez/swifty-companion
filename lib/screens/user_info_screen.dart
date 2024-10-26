@@ -1,3 +1,4 @@
+// lib/screens/user_info_screen.dart
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/cursus_model.dart';
@@ -69,8 +70,19 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     );
   }
 
-  double _calculateLevelProgress(double level) {
-    return level - level.floor();
+  double _calculateLevelProgress(double level, double maxLevel) {
+    // Get the whole number and decimal parts
+    int currentLevel = level.floor();
+    double progress = level - currentLevel;
+
+    return (currentLevel + progress) / maxLevel;
+  }
+
+  double _getMaxLevel(String cursusName) {
+    if (cursusName == '42cursus') return 21.0;
+    if (cursusName == 'C Piscine') return 11.0;
+    if (cursusName == 'Discovery Piscine - Web') return 15.0;
+    return 1.0; // Default max level
   }
 
   Color _getSkillColor(double level) {
@@ -199,7 +211,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                   Text('Level: ${_selectedCursus!.level.floor()}',
                       style: const TextStyle(fontSize: 18)),
                   LinearProgressIndicator(
-                    value: _calculateLevelProgress(_selectedCursus!.level),
+                    value: _calculateLevelProgress(_selectedCursus!.level, _getMaxLevel(_selectedCursus!.name)),
                     backgroundColor: Colors.grey[300],
                     color: Colors.blue,
                   ),
