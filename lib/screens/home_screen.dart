@@ -78,11 +78,16 @@ class _HomeScreenState extends State<HomeScreen> {
         _userInfo = result['userInfo'];
       });
 
-      // Fetch users by campus
-      if (_userInfo != null) {
-        final campusName = _userInfo!.campus;
-        _fetchUsersByCampus(campusName);
-      }
+      // Redirect to logged-in user's UserInfoScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UserInfoScreen(
+            userId: _userInfo!.id,
+            loggedInUserProfilePicture: _userInfo!.profilePicture,
+          ),
+        ),
+      );
     }
   }
 
